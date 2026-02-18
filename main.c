@@ -4,6 +4,7 @@
 // via the Command Line
 
 #include <stdio.h>
+#include <string.h> // für strcmp
 
 #include "oscore.h"
 
@@ -20,14 +21,26 @@ int file_exists(const char *filename)
 }
 
 // Screaming for help
-void help()
+int help()
 {
 	printf("HELP!\n");
+	return 0;
 }
 
 // Main Function
 int main(int argc, char *argv[])
 {
+	if (argc < 2) {
+        // Kein Argument nach dem Programmnamen
+        printf("Please run with an Argument or --help\n");
+        return 1;
+    }
+
+	// Help
+	if (strcmp(argv[1], "--help") == 0) {
+		return help();
+	}
+
 	// TODO
 	// Pipeline
 	//
