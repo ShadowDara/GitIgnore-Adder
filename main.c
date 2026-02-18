@@ -1,103 +1,106 @@
 // Gitignore Adder
 //
-// a tiny C program which is desined to add stuff to your Gitignore file
-// via the Command Line
+// A small C program that adds entries to the .gitignore file of a Git repository via the command line.
+// It recursively searches for the .git folder, creates a .gitignore if necessary, and appends the arguments as new lines.
 
 #include <stdio.h>
-#include <string.h> // für strcmp
-
+#include <string.h> // for strcmp
 #include "oscore.h"
 
-// Check if a File exists
+// Checks if a file exists (returns 1 if it exists, 0 if not)
 int file_exists(const char *filename)
 {
-	FILE *file = fopen(filename, "r");
-	if (file)
-	{
-		fclose(file);
-		return 1;
-	}
-	return 0;
+    FILE *file = fopen(filename, "r");
+    if (file)
+    {
+        fclose(file);
+        return 1;
+    }
+    return 0;
 }
 
-// Screaming for help
+// Prints a help message
 int help()
 {
-	printf("HELP!\n");
-	return 0;
+    printf("GitIgnore-Adder\n"
+           "Adds entries to the .gitignore of a Git repository.\n"
+           "Usage: ./main <entry1> <entry2> ...\n"
+           "Example: ./main build/ temp.log\n"
+           "--help shows this help.\n");
+    return 0;
 }
 
-// Main Function
+// Recursively searches for the .git folder upwards from the current directory.
+// found_path: buffer for the found directory
+// Returns: 1 = found, 0 = not found
+int find_git_root(char *found_path, int maxlen) {
+    char *cwd = get_current_path();
+    if (!cwd) return 0;
+    while (1) {
+        char git_path[PATH_MAX_LEN];
+        snprintf(git_path, PATH_MAX_LEN, "%s%s.git", cwd, PATH_SEPARATOR);
+        if (is_directory(git_path)) {
+            strncpy(found_path, cwd, maxlen);
+            free(cwd);
+            return 1;
+        }
+        // Go up one directory (last separator)
+        char *last_sep = strrchr(cwd, PATH_SEPARATOR[0]);
+        if (!last_sep || last_sep == cwd) break;
+        *last_sep = '\0';
+    }
+    free(cwd);
+    return 0;
+}
+
 int main(int argc, char *argv[])
 {
-	if (argc < 2) {
-        // Kein Argument nach dem Programmnamen
-        printf("Please run with an Argument or --help\n");
+    // Check for arguments
+    if (argc < 2) {
+        printf("Please run with at least one argument or --help.\n");
         return 1;
     }
 
-	// Help
-	if (strcmp(argv[1], "--help") == 0) {
-		return help();
-	}
+    // Show help
+    if (strcmp(argv[1], "--help") == 0) {
+        return help();
+    }
 
-	// TODO
-	// Pipeline
-	//
-	// Get the Current Path
-	// char Path* = get_current_path();
+    // Search for Git root (.git folder)
+    char git_root[PATH_MAX_LEN] = {0};
+    if (!find_git_root(git_root, PATH_MAX_LEN)) {
+        printf("No .git folder found in the current or any parent directory.\n");
+        return 1;
+    }
 
-	const char *folder_to_check = ".git";
+    // Determine .gitignore path in the Git root
+    char gitignore_path[PATH_MAX_LEN];
+    snprintf(gitignore_path, PATH_MAX_LEN, "%s%s.gitignore", git_root, PATH_SEPARATOR);
 
-	int GitFolderFound = 1;
-	int GitignoreFound = 1;
+    // If .gitignore does not exist, create it
+    if (!file_exists(gitignore_path)) {
+        FILE *file = fopen(gitignore_path, "w");
+        if (!file) {
+            perror("Error creating .gitignore file");
+            return 1;
+        }
+        fclose(file);
+        printf(".gitignore was created in directory: %s\n", git_root);
+    } else {
+        printf(".gitignore found in directory: %s\n", git_root);
+    }
 
-	// Check if there is a Git Repository in the same Directory
-	if (folder_exists_in_current(folder_to_check))
-	{
-		printf("Folder '%s' exists in the current directory!\n", folder_to_check);
-		GitFolderFound = 0;
-	}
-	else
-	{
-		printf("Folder '%s' does NOT exist in the current directory.\n", folder_to_check);
-	}
-
-	if (GitFolderFound == 0)
-	{
-		if (file_exists(".gitignore") == 1)
-		{
-			printf("Gitignore Found\n");
-			FILE *file = fopen(".gitignore", "a"); // "a" = append
-			if (file == NULL)
-			{
-				perror("Fehler beim Öffnen der Datei");
-				return 1;
-			}
-			for (int i = 1; i < argc; i++)
-			{
-				printf("argv[%d] = %s\n", i, argv[i]);
-				// Zeile anhängen
-				fprintf(file, "%s", argv[i]);
-				fprintf(file, "\n");
-			}
-
-			// Close the File
-			fclose(file);
-		}
-	}
-
-	//
-	//
-	// if not -> go one Directory up and check again -> and go
-	// up again
-	//
-	// If Yes -> check if there is a Gitignore file ->
-	// If not -> create one
-	//
-	// append every argument as a new Line to the gitignore
-	// file
-
-	// printf("Hello World\n");
-	return 0;
+    // Append arguments (except --help) to .gitignore
+    FILE *file = fopen(gitignore_path, "a");
+    if (!file) {
+        perror("Error opening .gitignore file for appending");
+        return 1;
+    }
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "--help") == 0) continue;
+        fprintf(file, "%s\n", argv[i]);
+        printf("%s added to .gitignore.\n", argv[i]);
+    }
+    fclose(file);
+    return 0;
 }
