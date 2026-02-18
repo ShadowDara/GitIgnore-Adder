@@ -4,8 +4,19 @@
 // via the Command Line
 
 #include <stdio.h>
+
 #include "oscore.h"
 
+
+// Check if a File exists
+int file_exists(const char *filename) {
+    FILE *file = fopen(filename, "r");
+    if (file) {
+        fclose(file);
+        return 1;
+    }
+    return 0;
+}
 
 // Screaming for help
 void help()
@@ -21,19 +32,28 @@ int main(int argc, char* argv[])
 	// Pipeline
 	//
 	// Get the Current Path
-	char Path = get_current_path();
+	//char Path* = get_current_path();
 
 	const char* folder_to_check = ".git";
 
-	int GitFolderFound = 0;
-	int GitignoreFound = 0;
+	int GitFolderFound = 1;
+	int GitignoreFound = 1;
 
 	// Check if there is a Git Repository in the same Directory
 	if (folder_exists_in_current(folder_to_check)) {
 	        printf("Folder '%s' exists in the current directory!\n", folder_to_check);
+		GitFolderFound = 0;
     	} else {
         	printf("Folder '%s' does NOT exist in the current directory.\n", folder_to_check);
     	}
+
+	if (GitFolderFound == 0)
+	{
+		if (file_exists(".gitignore") == 1)
+		{
+			printf("Gitignore Found\n");
+		}
+	}
 
 	//
 	//
@@ -48,7 +68,7 @@ int main(int argc, char* argv[])
 
 
 
-	printf("Hello World\n");
+	// printf("Hello World\n");
 	return 0;
 }
 
