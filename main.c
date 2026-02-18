@@ -1,0 +1,54 @@
+// Gitignore Adder
+//
+// a tiny C program which is desined to add stuff to your Gitignore file
+// via the Command Line
+
+#include <stdio.h>
+#include "oscore.h"
+
+
+// Screaming for help
+void help()
+{
+	printf("HELP!\n");
+}
+
+
+// Main Function
+int main(int argc, char* argv[])
+{
+	// TODO
+	// Pipeline
+	//
+	// Get the Current Path
+	char Path = get_current_path();
+
+	const char* folder_to_check = ".git";
+
+	int GitFolderFound = 0;
+	int GitignoreFound = 0;
+
+	// Check if there is a Git Repository in the same Directory
+	if (folder_exists_in_current(folder_to_check)) {
+	        printf("Folder '%s' exists in the current directory!\n", folder_to_check);
+    	} else {
+        	printf("Folder '%s' does NOT exist in the current directory.\n", folder_to_check);
+    	}
+
+	//
+	//
+	// if not -> go one Directory up and check again -> and go
+	// up again
+	//
+	// If Yes -> check if there is a Gitignore file ->
+	// If not -> create one
+	//
+	// append every argument as a new Line to the gitignore
+	// file
+
+
+
+	printf("Hello World\n");
+	return 0;
+}
+
