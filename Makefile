@@ -7,3 +7,6 @@ run:
 	$(MAKE) build
 	./main
 
+install:
+	$(MAKE) build
+	mv main /usr/local/bin/ignore
