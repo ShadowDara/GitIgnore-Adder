@@ -1,7 +1,8 @@
 # Makefile for Gitignore Adder
 
+# But only optimated for personal CPU!
 build:
-	gcc main.c oscore.c oscore.h -o main
+	gcc -O2 -march=native -flto main.c oscore.c -o main
 
 run:
 	$(MAKE) build
